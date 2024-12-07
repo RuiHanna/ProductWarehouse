@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>企业产品仓库基本信息管理系统</title>
+    <link rel="icon" href="/static/plugins/bootstrap-icons-1.11.3/house-fill.svg">
+    <link rel="stylesheet" href="/static/plugins/bootstrap-5.3.2-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/plugins/bootstrap-icons-1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+<!--导航-->
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand">企业产品仓库基本信息管理系统</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+                aria-controls="navbarNavAltMarkup" aria-expanded="false">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-start" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-link active" href="/edit/client/{{ uname }}">客户管理</a>
+                <a class="nav-link" href="/edit/warehouse/{{ uname }}">仓库管理</a>
+                <a class="nav-link" href="/edit/product/{{ uname }}">产品管理</a>
+            </div>
+        </div>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <div class="nav-item dropdown float-end">
+                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ uname }}
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/login">注销</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!--搜索-->
+<div class="d-flex justify-content-end m-3">
+    <form class="d-flex" role="search" action="/edit/client/{{ uname }}">
+        <input class="form-control me-2" name="search" placeholder="输入姓名...">
+        <button class="btn btn-outline-success" type="submit">
+            <i class="bi bi-search"></i>
+        </button>
+    </form>
+</div>
+
+<!--表格-->
+<div class="mt-5 w-75 mx-auto">
+    <table class="table table-striped table-bordered">
+        <thead>
+        <th>客户编号</th>
+        <th>客户姓名</th>
+        <th>客户类型</th>
+        <th>联系人</th>
+        <th>联系电话</th>
+        <th>通信地址</th>
+        <th>备注</th>
+        <th>操作</th>
+        </thead>
+        <tbody>
+        {% for data in data_list %}
+            <tr>
+                <td>{{ data.cid }}</td>
+                <td>{{ data.cname }}</td>
+                <td>{{ data.type }}</td>
+                <td>{{ data.contacts }}</td>
+                <td>{{ data.contact_number }}</td>
+                <td>{{ data.address }}</td>
+                <td>{{ data.remarks }}</td>
+                <td>
+                    <!-- 修改 -->
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                            data-bs-target="#change{{ data.cid }}">修改
+                    </button>
+                    <div class="modal fade" id="change{{ data.cid }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form id="changeform-{{ data.cid }}" class="changeform" method="post"
+                                      action="/edit/client/{{ uname }}/{{ data.cid }}">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5">修改客户信息</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">客户编号</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" readonly class="form-control-plaintext"
+                                                       value="{{ data.cid }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">客户姓名</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="cname" class="form-control"
+                                                       value="{{ data.cname }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">客户类型</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="type" class="form-control"
+                                                       value="{{ data.type }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">联系人</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="contacts" class="form-control"
+                                                       value="{{ data.contacts }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">联系电话</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="contact_number" class="form-control"
+                                                       value="{{ data.contact_number }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">通信地址</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="address" class="form-control"
+                                                       value="{{ data.address }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">备注</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="remarks" class="form-control"
+                                                       value="{{ data.remarks }}">
+                                            </div>
+                                        </div>
+                                        <!--错误信息-->
+                                        <div id="flashmessage-{{ data.cid }}" class="alert alert-danger visually-hidden"></div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">保存修改</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!--删除-->
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#delete{{ data.cid }}">删除
+                    </button>
+                    <div class="modal fade" id="delete{{ data.cid }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5">提示信息</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    确认要删除吗？
+                                </div>
+                                <div class="modal-footer justify-content-center">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消
+                                    </button>
+                                    <a href="/edit/client/{{ uname }}/delete/{{ data.cid }}"
+                                       class="btn btn-danger">确认</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!--添加-->
+<div class="text-center my-4">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+            data-bs-target="#add">添加
+    </button>
+    <div class="modal fade" id="add" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form id="addform" method="post" action="/edit/client/{{ uname }}/add">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">添加客户</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">客户姓名</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="cname" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">客户类型</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="type" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">联系人</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="contacts" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">联系电话</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="contact_number" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">通信地址</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="address" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">备注</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="remarks" class="form-control">
+                            </div>
+                        </div>
+                        <!--错误信息-->
+                        <div id="flashmessageadd" class="alert alert-danger visually-hidden"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭
+                        </button>
+                        <button type="submit" class="btn btn-primary">确认新增</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="/static/plugins/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/plugins/jQuery/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        //修改客户约束
+        $(document).on("submit", ".changeform", function (event) {
+            event.preventDefault();
+
+            var formData = $(this).serialize();
+            var actionUrl = $(this).attr('action');
+            var cid = $(this).attr('id').split('-')[1];
+
+            $.ajax({
+                url: actionUrl,
+                method: "POST",
+                data: formData,
+                success: function (response) {
+                    if (response.error_message) {
+                        $('#flashmessage-' + cid).removeClass('visually-hidden').text(response.error_message);
+                    } else {
+                        location.reload();
+                    }
+                }
+            });
+        });
+        //添加客户约束
+        $("#addform").on("submit", function (event) {
+            event.preventDefault();
+            var formData = $(this).serialize();
+
+            $.ajax({
+                url: "/edit/client/{{ uname }}/add",
+                method: "POST",
+                data: formData,
+                success: function (response) {
+                    if (response.error_message) {
+                        $('#flashmessageadd').removeClass('visually-hidden').text(response.error_message);
+                    } else {
+                        location.reload();
+                    }
+                }
+            });
+        });
+    });
+</script>
+</body>
+
+</html>

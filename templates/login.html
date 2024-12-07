@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>企业产品仓库基本信息管理系统</title>
+    <link rel="icon" href="../static/plugins/bootstrap-icons-1.11.3/house-fill.svg">
+    <link rel="stylesheet" href="../static/plugins/bootstrap-5.3.2-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/plugins/bootstrap-icons-1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+<!--导航-->
+<nav class="navbar bg-body-tertiary shadow-sm">
+    <div class="container-fluid justify-content-center">
+        <a class="navbar-brand" href="/login">企业产品仓库基本信息管理系统</a>
+    </div>
+</nav>
+<!--登录表单-->
+<div class="mx-auto my-5 card shadow bg-body-tertiary" style="width: 400px">
+    <div class="card-body">
+        <form method="post" action="/login">
+            <div class="text-center fs-4 mb-4">登录</div>
+            <!--姓名-->
+            <div class="input-group mt-3 mb-5">
+                <span class="input-group-text" id="name">姓名</span>
+                <input type="text" class="form-control" name="name" aria-describedby="name">
+            </div>
+            <!--密码-->
+            <div class="input-group mt-3 mb-5">
+                <span class="input-group-text" id="pwd">密码</span>
+                <input type="password" name="pwd" class="form-control" aria-describedby="pwd">
+            </div>
+            <div class="alert alert-danger
+                    {% if get_flashed_messages() %}{{ '' }}{% else %}visually-hidden{% endif %}">{{ get_flashed_messages()[0] }}</div>
+            <!--提交-->
+            <div class="text-center my-3">
+                <button type="submit" class="btn btn-primary">提交</button>
+            </div>
+            <div class="text-center">
+                没有账号？去<a href="/register" class="text-decoration-none">注册</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../static/plugins/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>
+<script src="../static/plugins/jQuery/jquery-3.6.0.min.js"></script>
+</body>
+
+</html>

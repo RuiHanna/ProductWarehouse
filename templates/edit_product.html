@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>企业产品仓库基本信息管理系统</title>
+    <link rel="icon" href="/static/plugins/bootstrap-icons-1.11.3/house-fill.svg">
+    <link rel="stylesheet" href="/static/plugins/bootstrap-5.3.2-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/plugins/bootstrap-icons-1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+<!--导航-->
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand">企业产品仓库基本信息管理系统</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+                aria-controls="navbarNavAltMarkup" aria-expanded="false">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-start" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-link" href="/edit/client/{{ uname }}">客户管理</a>
+                <a class="nav-link" href="/edit/warehouse/{{ uname }}">仓库管理</a>
+                <a class="nav-link active" href="/edit/product/{{ uname }}">产品管理</a>
+            </div>
+        </div>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <div class="nav-item dropdown float-end">
+                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ uname }}
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/login">注销</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!--搜索-->
+<div class="d-flex justify-content-end m-3">
+    <form class="d-flex" role="search">
+        <input class="form-control me-2" name="search" type="search" placeholder="输入名称...">
+        <button class="btn btn-outline-success" type="submit">
+            <i class="bi bi-search"></i>
+        </button>
+    </form>
+</div>
+
+<!--表格-->
+<div class="mt-5 w-75 mx-auto">
+    <table class="table table-striped table-bordered">
+        <thead>
+        <th>产品编号</th>
+        <th>产品名称</th>
+        <th>产品规格</th>
+        <th>参考价格</th>
+        <th>数量上限</th>
+        <th>数量下线</th>
+        <th>操作</th>
+        </thead>
+        <tbody>
+        {% for data in data_list %}
+            <tr>
+                <td>{{ data.pid }}</td>
+                <td>{{ data.pname }}</td>
+                <td>{{ data.specification }}</td>
+                <td>{{ data.reference_price }}</td>
+                <td>{{ data.maxlim }}</td>
+                <td>{{ data.minlim }}</td>
+                <td>
+                    <!-- 修改 -->
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                            data-bs-target="#change{{ data.pid }}">修改
+                    </button>
+                    <div class="modal fade" id="change{{ data.pid }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form id="changeform-{{ data.pid }}" class="changeform" method="post"
+                                      action="/edit/product/{{ uname }}/{{ data.pid }}">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5">修改产品信息</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">产品编号</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" readonly class="form-control-plaintext"
+                                                       value="{{ data.pid }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">产品名称</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="pname" class="form-control"
+                                                       value="{{ data.pname }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">产品规格</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="specification" class="form-control"
+                                                       value="{{ data.specification }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">参考价格</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="reference_price" class="form-control"
+                                                       value="{{ data.reference_price }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">数量上限</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="maxlim" class="form-control"
+                                                       value="{{ data.maxlim }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-sm-3 col-form-label">数量下限</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="minlim" class="form-control"
+                                                       value="{{ data.minlim }}">
+                                            </div>
+                                        </div>
+                                        <!--错误信息-->
+                                        <div id="flashmessage-{{ data.pid }}"
+                                             class="alert alert-danger visually-hidden"></div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">保存修改</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!--删除-->
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#delete{{ data.pid }}">删除
+                    </button>
+                    <div class="modal fade" id="delete{{ data.pid }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5">提示信息</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    确认要删除吗？
+                                </div>
+                                <div class="modal-footer justify-content-center">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消
+                                    </button>
+                                    <a href="/edit/product/{{ uname }}/delete/{{ data.pid }}"
+                                       class="btn btn-danger">确认</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!--添加-->
+<div class="text-center my-4">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+            data-bs-target="#add">添加
+    </button>
+    <div class="modal fade" id="add" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form id="addform" method="post" action="/edit/product/{{ uname }}/add">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">添加产品</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">产品名称</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="pname" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">产品规格</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="specification" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">参考价格</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="reference_price" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">数量上限</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="maxlim" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">数量下限</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="minlim" class="form-control">
+                            </div>
+                        </div>
+                        <!--错误信息-->
+                        <div id="flashmessageadd" class="visually-hidden alert alert-danger"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭
+                        </button>
+                        <button type="submit" class="btn btn-primary">确认新增</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="/static/plugins/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/plugins/jQuery/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        //修改产品约束
+        $(document).on("submit", ".changeform", function (event) {
+            event.preventDefault();
+
+            var formData = $(this).serialize();
+            var actionUrl = $(this).attr('action');
+            var pid = $(this).attr('id').split('-')[1];
+
+            $.ajax({
+                url: actionUrl,
+                method: "POST",
+                data: formData,
+                success: function (response) {
+                    if (response.error_message) {
+                        $('#flashmessage-' + pid).removeClass('visually-hidden').text(response.error_message);
+                    } else {
+                        location.reload();
+                    }
+                }
+            });
+        });
+        //添加产品约束
+        $("#addform").on("submit", function (event) {
+            event.preventDefault();
+            var formData = $(this).serialize();
+
+            $.ajax({
+                url: "/edit/product/{{ uname }}/add",
+                method: "POST",
+                data: formData,
+                success: function (response) {
+                    if (response.error_message) {
+                        $('#flashmessageadd').removeClass('visually-hidden').text(response.error_message);
+                    } else {
+                        location.reload();
+                    }
+                }
+            });
+        });
+    });
+</script>
+</body>
+
+</html>

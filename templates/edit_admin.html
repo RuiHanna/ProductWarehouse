@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>企业产品仓库基本信息管理系统</title>
+    <link rel="icon" href="/static/plugins/bootstrap-icons-1.11.3/house-fill.svg">
+    <link rel="stylesheet" href="/static/plugins/bootstrap-5.3.2-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/plugins/bootstrap-icons-1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+<!--导航-->
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand">企业产品仓库基本信息管理系统</a>
+        <div class="nav-item dropdown justify-content-end me-5">
+            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ uname }}
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/login">注销</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!--搜索-->
+<div class="d-flex justify-content-end m-3">
+    <form class="d-flex" role="search" action="/edit/admin/{{ uname }}">
+        <input class="form-control me-2" name="search" placeholder="输入姓名...">
+        <button class="btn btn-outline-success" type="submit">
+            <i class="bi bi-search"></i>
+        </button>
+    </form>
+</div>
+
+<!--表格-->
+<div class="mt-5 w-75 mx-auto">
+    <table class="table table-striped table-bordered">
+        <thead>
+        <th>编号</th>
+        <th>姓名</th>
+        <th>权限</th>
+        <th>备注</th>
+        <th>操作</th>
+        </thead>
+        <tbody>
+        {% for data in data_list %}
+            {% if data.uname!=uname %}
+                <tr>
+                    <td>{{ data.uid }}</td>
+                    <td>{{ data.uname }}</td>
+                    {% if data.auth == 1 %}
+                        <td>管理员</td>
+                    {% elif data.auth == 0 %}
+                        <td>超级管理员</td>
+                    {% endif %}
+                    <td>{{ data.remarks }}</td>
+                    <td>
+                        <!-- 修改 -->
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                                data-bs-target="#change{{ data.uid }}">修改
+                        </button>
+                        <div class="modal fade" id="change{{ data.uid }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <form method="post" action="/edit/admin/{{ uname }}/{{ data.uid }}">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5">修改管理员权限</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="form-check">
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="RadioOption"
+                                                           id="radio1" value="super_admin">
+                                                    <label class="form-check-label" for="radio1">超级管理员</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="RadioOption"
+                                                           id="radio2" value="admin">
+                                                    <label class="form-check-label" for="radio2">管理员</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭
+                                            </button>
+                                            <button type="submit" class="btn btn-primary">保存修改</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--删除-->
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                                data-bs-target="#delete{{ data.uid }}">删除
+                        </button>
+                        <div class="modal fade" id="delete{{ data.uid }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5">提示信息</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        确认要删除吗？
+                                    </div>
+                                    <div class="modal-footer justify-content-center">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消
+                                        </button>
+                                        <a href="/edit/admin/{{ uname }}/delete/{{ data.uid }}" class="btn btn-danger">确认</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script src="/static/plugins/jQuery/jquery-3.6.0.min.js"></script>
+<script src="/static/plugins/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
