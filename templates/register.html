@@ -20,6 +20,13 @@
     <div class="card-body">
         <form method="post" action="/register">
             <div class="text-center fs-4 mb-4">注册</div>
+            <!--错误信息-->
+            <div class="alert alert-danger d-flex align-items-center
+                    {% if get_flashed_messages() %}{{ '' }}{% else %}visually-hidden{% endif %}" role="alert">
+                <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+                <div class="flex-grow-1">{{ get_flashed_messages()[0] }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
             <!--姓名-->
             <div class="input-group mt-3 mb-5">
                 <span class="input-group-text" id="name">姓名</span>
@@ -52,10 +59,6 @@
             <div class="input-group mb-3">
                 <span class="input-group-text">备注</span>
                 <textarea class="form-control" name="remarks"></textarea>
-            </div>
-            <div class="alert alert-danger
-                    {% if get_flashed_messages() %}{{ '' }}{% else %}visually-hidden{% endif %}">
-                {{ get_flashed_messages()[0] }}
             </div>
             <!--提交-->
             <div class="text-center my-3">

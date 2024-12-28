@@ -18,7 +18,7 @@
                 {{ uname }}
             </a>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="/login">注销</a></li>
+                <li><a class="dropdown-item" href="/logout">注销</a></li>
             </ul>
         </div>
     </div>
@@ -26,7 +26,7 @@
 
 <!--搜索-->
 <div class="d-flex justify-content-end m-3">
-    <form class="d-flex" role="search" action="/edit/admin/{{ uname }}">
+    <form class="d-flex" role="search" action="/edit/admin">
         <input class="form-control me-2" name="search" placeholder="输入姓名...">
         <button class="btn btn-outline-success" type="submit">
             <i class="bi bi-search"></i>
@@ -61,10 +61,11 @@
                         <button type="button" class="btn btn-success" data-bs-toggle="modal"
                                 data-bs-target="#change{{ data.uid }}">修改
                         </button>
+                        <!--修改模态框-->
                         <div class="modal fade" id="change{{ data.uid }}" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
-                                    <form method="post" action="/edit/admin/{{ uname }}/{{ data.uid }}">
+                                    <form method="post" action="/edit/admin/{{ data.uid }}">
                                         <div class="modal-header">
                                             <h1 class="modal-title fs-5">修改管理员权限</h1>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -97,6 +98,7 @@
                         <button type="button" class="btn btn-danger" data-bs-toggle="modal"
                                 data-bs-target="#delete{{ data.uid }}">删除
                         </button>
+                        <!--删除模态框-->
                         <div class="modal fade" id="delete{{ data.uid }}" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
@@ -111,7 +113,7 @@
                                     <div class="modal-footer justify-content-center">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消
                                         </button>
-                                        <a href="/edit/admin/{{ uname }}/delete/{{ data.uid }}" class="btn btn-danger">确认</a>
+                                        <a href="/edit/admin/delete/{{ data.uid }}" class="btn btn-danger">确认</a>
                                     </div>
                                 </div>
                             </div>

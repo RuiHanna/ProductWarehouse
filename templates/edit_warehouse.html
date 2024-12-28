@@ -19,9 +19,9 @@
         </button>
         <div class="collapse navbar-collapse justify-content-start" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-                <a class="nav-link" href="/edit/client/{{ uname }}">客户管理</a>
-                <a class="nav-link active" href="/edit/warehouse/{{ uname }}">仓库管理</a>
-                <a class="nav-link" href="/edit/product/{{ uname }}">产品管理</a>
+                <a class="nav-link" href="/edit/client">客户管理</a>
+                <a class="nav-link active" href="/edit/warehouse">仓库管理</a>
+                <a class="nav-link" href="/edit/product">产品管理</a>
             </div>
         </div>
         <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
@@ -31,7 +31,7 @@
                         {{ uname }}
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="/login">注销</a></li>
+                        <li><a class="dropdown-item" href="/logout">注销</a></li>
                     </ul>
                 </div>
             </div>
@@ -41,7 +41,7 @@
 
 <!--搜索-->
 <div class="d-flex justify-content-end m-3">
-    <form class="d-flex" role="search" action="/edit/warehouse/{{ uname }}">
+    <form class="d-flex" role="search" action="/edit/warehouse">
         <input class="form-control me-2" name="search" placeholder="输入名称...">
         <button class="btn btn-outline-success" type="submit">
             <i class="bi bi-search"></i>
@@ -73,7 +73,7 @@
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
                                 <form id="changeform-{{ data.wid }}" class="changeform" method="post"
-                                      action="/edit/warehouse/{{ uname }}/{{ data.wid }}">
+                                      action="/edit/warehouse/{{ data.wid }}">
                                     <div class="modal-header">
                                         <h1 class="modal-title fs-5">修改仓库信息</h1>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -131,7 +131,7 @@
                                 <div class="modal-footer justify-content-center">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消
                                     </button>
-                                    <a href="/edit/warehouse/{{ uname }}/delete/{{ data.wid }}"
+                                    <a href="/edit/warehouse/delete/{{ data.wid }}"
                                        class="btn btn-danger">确认</a>
                                 </div>
                             </div>
@@ -152,7 +152,7 @@
     <div class="modal fade" id="add" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <form id="addform" method="post" action="/edit/warehouse/{{ uname }}/add">
+                <form id="addform" method="post" action="/edit/warehouse/add">
                     <div class="modal-header">
                         <h1 class="modal-title fs-5">添加仓库</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -182,7 +182,6 @@
             </div>
         </div>
     </div>
-
 </div>
 
 <script src="/static/plugins/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>
@@ -216,7 +215,7 @@
             var formData = $(this).serialize();
 
             $.ajax({
-                url: "/edit/warehouse/{{ uname }}/add",
+                url: "/edit/warehouse/add",
                 method: "POST",
                 data: formData,
                 success: function (response) {

@@ -1,8 +1,10 @@
+import secrets
+
 import pymysql
-from flask import Flask, render_template, request, redirect, flash, jsonify
+from flask import Flask, render_template, request, redirect, flash, jsonify, session
 
 app = Flask(__name__)
-app.secret_key = "123"
+app.secret_key = secrets.token_hex(16)  # 生成随机的十六进制字符串作为密钥
 
 
 # 注册
@@ -34,7 +36,6 @@ def register():
         return redirect("/register")
 
     # 连接数据库
-    # print(name, pwd, confirm, auth, remarks)
     conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8', db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
@@ -64,6 +65,11 @@ def register():
 @app.route('/login', methods=["POST", "GET"])
 @app.route('/', methods=["POST", "GET"])
 def login():
+    # 检查是否已登录
+    if 'name' in session:
+        if session['auth'] == 0:
+            return redirect("/edit/admin")
+        return redirect("/edit/client")
     if request.method == 'GET':
         return render_template("login.html")
     name = request.form.get('name')
@@ -77,19 +83,25 @@ def login():
         flash("密码不能为空", category='error')
         return redirect("/login")
 
+    # 连接数据库
     conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8', db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     sql = "select pwd,auth from user where uname=%s"
     cursor.execute(sql, [name])
     data_list = cursor.fetchall()
 
+    # 找不到记录，姓名错误或没有注册
     if len(data_list) == 0:
-        flash("姓名错误", category="error")
+        flash("姓名错误或还没有注册", category="error")
         return redirect("/login")
 
+    # 验证密码，记录session（加哈希）
     for data in data_list:
         if pwd == data['pwd']:
             authority = data['auth']
+            session['name'] = name
+            session['pwd'] = pwd
+            session['auth'] = authority
         else:
             flash("密码错误", category="error")
             return redirect("/login")
@@ -97,15 +109,19 @@ def login():
     cursor.close()
     conn.close()
     if authority == 0:
-        return redirect("/edit/admin/" + name)
-    return redirect("/edit/client/" + name)
+        return redirect("/edit/admin")
+    return redirect("/edit/client")
 
 
 # 编辑管理员页面
-@app.route('/edit/admin/<uname>', methods=["POST", "GET"])
-def edit_admin(uname):
+@app.route('/edit/admin', methods=["POST", "GET"])
+def edit_admin():
+    # 验证是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect("/login")
+    # 获取搜索信息
     search = request.args.get("search")
-    # print(search)
     conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
@@ -119,16 +135,20 @@ def edit_admin(uname):
 
     conn.close()
     cursor.close()
-    return render_template("edit_admin.html", data_list=data_list, uname=uname)
+    return render_template("edit_admin.html", data_list=data_list, uname=session['name'])
 
 
 # 修改管理员权限
-@app.route('/edit/admin/<uname>/<int:id>', methods=["POST"])
-def change_auth(uname, id):
+@app.route('/edit/admin/<int:id>', methods=["POST"])
+def change_auth(id):
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     auth = request.form.get('RadioOption')
     # 未选择权限
     if not auth:
-        return redirect('/edit/admin/' + uname)
+        return redirect('/edit/admin')
     # 更新user
     conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
                            db='warehouse')
@@ -148,13 +168,16 @@ def change_auth(uname, id):
     cursor.close()
     conn.close()
 
-    return redirect('/edit/admin/' + uname)
+    return redirect('/edit/admin')
 
 
 # 删除用户
-@app.route('/edit/admin/<uname>/delete/<int:id>', methods=["POST", "GET"])
-def delete_admin(uname, id):
-    # print(uname, id)
+@app.route('/edit/admin/delete/<int:id>', methods=["POST", "GET"])
+def delete_admin(id):
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     # 删除用户
     conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
@@ -163,12 +186,16 @@ def delete_admin(uname, id):
     conn.commit()
     cursor.close()
     conn.close()
-    return redirect('/edit/admin/' + uname)
+    return redirect('/edit/admin')
 
 
 # 客户管理页面
-@app.route('/edit/client/<uname>', methods=["POST", "GET"])
-def edit_client(uname):
+@app.route('/edit/client', methods=["POST", "GET"])
+def edit_client():
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     search = request.args.get("search")
     conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8',
                            db='warehouse')
@@ -184,12 +211,16 @@ def edit_client(uname):
 
     conn.close()
     cursor.close()
-    return render_template("edit_client.html", data_list=data_list, uname=uname)
+    return render_template("edit_client.html", data_list=data_list, uname=session['name'])
 
 
 # 修改客户信息
-@app.route('/edit/client/<uname>/<int:id>', methods=["POST", "GET"])
-def change_client(uname, id):
+@app.route('/edit/client/<int:id>', methods=["POST", "GET"])
+def change_client(id):
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     cname = request.form.get('cname')
     type = request.form.get('type')
     contacts = request.form.get('contacts')
@@ -211,12 +242,16 @@ def change_client(uname, id):
     cursor.close()
     conn.close()
 
-    return redirect('/edit/client/' + uname)
+    return redirect('/edit/client')
 
 
 # 删除客户
-@app.route('/edit/client/<uname>/delete/<int:id>', methods=["POST", "GET"])
-def delete_client(uname, id):
+@app.route('/edit/client/delete/<int:id>', methods=["POST", "GET"])
+def delete_client(id):
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     # 删除客户
     conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
@@ -225,12 +260,16 @@ def delete_client(uname, id):
     conn.commit()
     cursor.close()
     conn.close()
-    return redirect('/edit/client/' + uname)
+    return redirect('/edit/client')
 
 
 # 新增客户
-@app.route('/edit/client/<uname>/add', methods=["POST", "GET"])
-def add_client(uname):
+@app.route('/edit/client/add', methods=["POST", "GET"])
+def add_client():
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     cname = request.form.get('cname')
     type = request.form.get('type')
     contacts = request.form.get('contacts')
@@ -252,12 +291,16 @@ def add_client(uname):
     cursor.close()
     conn.close()
 
-    return redirect('/edit/client/' + uname)
+    return redirect('/edit/client')
 
 
 # 仓库管理页面
-@app.route('/edit/warehouse/<uname>', methods=["POST", "GET"])
-def edit_warehouse(uname):
+@app.route('/edit/warehouse', methods=["POST", "GET"])
+def edit_warehouse():
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     search = request.args.get("search")
     conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8',
                            db='warehouse')
@@ -273,12 +316,16 @@ def edit_warehouse(uname):
 
     conn.close()
     cursor.close()
-    return render_template("edit_warehouse.html", data_list=data_list, uname=uname)
+    return render_template("edit_warehouse.html", data_list=data_list, uname=session['name'])
 
 
 # 新增仓库
-@app.route('/edit/warehouse/<uname>/add', methods=["POST", "GET"])
-def add_warehouse(uname):
+@app.route('/edit/warehouse/add', methods=["POST", "GET"])
+def add_warehouse():
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     wname = request.form.get('wname')
     description = request.form.get('description')
     # 校验数据:使用ajax
@@ -296,12 +343,16 @@ def add_warehouse(uname):
     cursor.close()
     conn.close()
 
-    return redirect('/edit/warehouse/' + uname)
+    return redirect('/edit/warehouse')
 
 
 # 修改仓库
-@app.route('/edit/warehouse/<uname>/<int:id>', methods=["POST", "GET"])
-def change_warehouse(uname, id):
+@app.route('/edit/warehouse/<int:id>', methods=["POST", "GET"])
+def change_warehouse(id):
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     wname = request.form.get('wname')
     description = request.form.get('description')
     # 校验数据:使用ajax
@@ -319,12 +370,16 @@ def change_warehouse(uname, id):
     cursor.close()
     conn.close()
 
-    return redirect('/edit/warehouse/' + uname)
+    return redirect('/edit/warehouse')
 
 
 # 删除仓库
-@app.route('/edit/warehouse/<uname>/delete/<int:id>', methods=["POST", "GET"])
-def delete_warehouse(uname, id):
+@app.route('/edit/warehouse/delete/<int:id>', methods=["POST", "GET"])
+def delete_warehouse(id):
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     # 删除客户
     conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
@@ -333,12 +388,16 @@ def delete_warehouse(uname, id):
     conn.commit()
     cursor.close()
     conn.close()
-    return redirect('/edit/warehouse/' + uname)
+    return redirect('/edit/warehouse')
 
 
 # 产品管理页面
-@app.route('/edit/product/<uname>', methods=["POST", "GET"])
-def edit_product(uname):
+@app.route('/edit/product', methods=["POST", "GET"])
+def edit_product():
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     search = request.args.get("search")
     conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8',
                            db='warehouse')
@@ -354,12 +413,16 @@ def edit_product(uname):
 
     conn.close()
     cursor.close()
-    return render_template("edit_product.html", data_list=data_list, uname=uname)
+    return render_template("edit_product.html", data_list=data_list, uname=session['name'])
 
 
 # 修改产品信息
-@app.route('/edit/product/<uname>/<int:id>', methods=["POST", "GET"])
-def change_product(uname, id):
+@app.route('/edit/product/<int:id>', methods=["POST", "GET"])
+def change_product(id):
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     pname = request.form.get('pname')
     specification = request.form.get(' specification')
     reference_price = request.form.get('reference_price')
@@ -368,6 +431,12 @@ def change_product(uname, id):
     # 校验数据:使用ajax
     if pname == "":
         return jsonify({'error_message': '产品名称不能为空'})
+    if not reference_price.isdigit():
+        return jsonify({'error_message': '参考价格需为整数'})
+    if not maxlim.isdigit():
+        return jsonify({'error_message': '数量上限需为整数'})
+    if not minlim.isdigit():
+        return jsonify({'error_message': '数量下限需为整数'})
     # 更新product
     conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
                            db='warehouse')
@@ -380,13 +449,16 @@ def change_product(uname, id):
     cursor.close()
     conn.close()
 
-    return redirect('/edit/product/' + uname)
+    return redirect('/edit/product')
 
 
 # 删除产品
-@app.route('/edit/product/<uname>/delete/<int:id>', methods=["POST", "GET"])
-def delete_product(uname, id):
-    # 删除客户
+@app.route('/edit/product/delete/<int:id>', methods=["POST", "GET"])
+def delete_product(id):
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     sql = "delete from product where pid=%s"
@@ -394,12 +466,16 @@ def delete_product(uname, id):
     conn.commit()
     cursor.close()
     conn.close()
-    return redirect('/edit/product/' + uname)
+    return redirect('/edit/product')
 
 
 # 新增产品
-@app.route('/edit/product/<uname>/add', methods=["POST", "GET"])
-def add_product(uname):
+@app.route('/edit/product/add', methods=["POST", "GET"])
+def add_product():
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
     pname = request.form.get('pname')
     specification = request.form.get(' specification')
     reference_price = request.form.get('reference_price')
@@ -408,6 +484,12 @@ def add_product(uname):
     # 校验数据:使用ajax
     if pname == "":
         return jsonify({'error_message': '产品名称不能为空'})
+    if not reference_price.isdigit():
+        return jsonify({'error_message': '参考价格需为整数'})
+    if not maxlim.isdigit():
+        return jsonify({'error_message': '数量上限需为整数'})
+    if not minlim.isdigit():
+        return jsonify({'error_message': '数量下限需为整数'})
 
     # 新增product
     conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
@@ -420,7 +502,13 @@ def add_product(uname):
     cursor.close()
     conn.close()
 
-    return redirect('/edit/product/' + uname)
+    return redirect('/edit/product')
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/login')
 
 
 if __name__ == '__main__':

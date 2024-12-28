@@ -19,9 +19,9 @@
         </button>
         <div class="collapse navbar-collapse justify-content-start" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-                <a class="nav-link" href="/edit/client/{{ uname }}">客户管理</a>
-                <a class="nav-link" href="/edit/warehouse/{{ uname }}">仓库管理</a>
-                <a class="nav-link active" href="/edit/product/{{ uname }}">产品管理</a>
+                <a class="nav-link" href="/edit/client">客户管理</a>
+                <a class="nav-link" href="/edit/warehouse">仓库管理</a>
+                <a class="nav-link active" href="/edit/product">产品管理</a>
             </div>
         </div>
         <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
@@ -31,7 +31,7 @@
                         {{ uname }}
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="/login">注销</a></li>
+                        <li><a class="dropdown-item" href="/logout">注销</a></li>
                     </ul>
                 </div>
             </div>
@@ -75,11 +75,12 @@
                     <button type="button" class="btn btn-success" data-bs-toggle="modal"
                             data-bs-target="#change{{ data.pid }}">修改
                     </button>
+                    <!--修改模态框-->
                     <div class="modal fade" id="change{{ data.pid }}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
                                 <form id="changeform-{{ data.pid }}" class="changeform" method="post"
-                                      action="/edit/product/{{ uname }}/{{ data.pid }}">
+                                      action="/edit/product/{{ data.pid }}">
                                     <div class="modal-header">
                                         <h1 class="modal-title fs-5">修改产品信息</h1>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -144,6 +145,7 @@
                     <button type="button" class="btn btn-danger" data-bs-toggle="modal"
                             data-bs-target="#delete{{ data.pid }}">删除
                     </button>
+                    <!--删除模态框-->
                     <div class="modal fade" id="delete{{ data.pid }}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
@@ -158,7 +160,7 @@
                                 <div class="modal-footer justify-content-center">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消
                                     </button>
-                                    <a href="/edit/product/{{ uname }}/delete/{{ data.pid }}"
+                                    <a href="/edit/product/delete/{{ data.pid }}"
                                        class="btn btn-danger">确认</a>
                                 </div>
                             </div>
@@ -179,7 +181,7 @@
     <div class="modal fade" id="add" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <form id="addform" method="post" action="/edit/product/{{ uname }}/add">
+                <form id="addform" method="post" action="/edit/product/add">
                     <div class="modal-header">
                         <h1 class="modal-title fs-5">添加产品</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -261,7 +263,7 @@
             var formData = $(this).serialize();
 
             $.ajax({
-                url: "/edit/product/{{ uname }}/add",
+                url: "/edit/product/add",
                 method: "POST",
                 data: formData,
                 success: function (response) {

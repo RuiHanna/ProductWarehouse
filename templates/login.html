@@ -19,9 +19,16 @@
 <div class="mx-auto my-5 card shadow bg-body-tertiary" style="width: 400px">
     <div class="card-body">
         <form method="post" action="/login">
-            <div class="text-center fs-4 mb-4">登录</div>
+            <div class="text-center fs-4 mb-3">登录</div>
+            <!--错误信息-->
+            <div class="alert alert-danger d-flex align-items-center
+                    {% if get_flashed_messages() %}{{ '' }}{% else %}visually-hidden{% endif %}" role="alert">
+                <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+                <div class="flex-grow-1">{{ get_flashed_messages()[0] }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
             <!--姓名-->
-            <div class="input-group mt-3 mb-5">
+            <div class="input-group mt-4 mb-5">
                 <span class="input-group-text" id="name">姓名</span>
                 <input type="text" class="form-control" name="name" aria-describedby="name">
             </div>
@@ -30,8 +37,6 @@
                 <span class="input-group-text" id="pwd">密码</span>
                 <input type="password" name="pwd" class="form-control" aria-describedby="pwd">
             </div>
-            <div class="alert alert-danger
-                    {% if get_flashed_messages() %}{{ '' }}{% else %}visually-hidden{% endif %}">{{ get_flashed_messages()[0] }}</div>
             <!--提交-->
             <div class="text-center my-3">
                 <button type="submit" class="btn btn-primary">提交</button>
