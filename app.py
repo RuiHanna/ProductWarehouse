@@ -1,7 +1,10 @@
+import os
 import secrets
+import subprocess
+from datetime import datetime
 
 import pymysql
-from flask import Flask, render_template, request, redirect, flash, jsonify, session
+from flask import Flask, render_template, request, redirect, flash, jsonify, session, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -109,6 +112,7 @@ def login():
         if check_password_hash(data['pwd'], pwd):
             authority = data['auth']
             session['name'] = name
+            session['pwd'] = pwd
             session['auth'] = authority
         else:
             flash("密码错误", category="error")
@@ -130,7 +134,7 @@ def edit_admin():
         return redirect("/login")
     # 获取搜索信息
     search = request.args.get("search")
-    conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8',
+    conn = pymysql.connect(host="127.0.0.1", port=3306, user='superadmin', passwd="superadmin", charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
@@ -158,7 +162,7 @@ def change_auth(id):
     if not auth:
         return redirect('/edit/admin')
     # 更新user
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='superadmin', password='superadmin', charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     cursor.execute("select auth from user where uid=%s", [id])
@@ -187,7 +191,7 @@ def delete_admin(id):
         flash("请先登录！", category="error")
         return redirect('/login')
     # 删除用户
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', db='warehouse')
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='superadmin', password='superadmin', db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     sql = "delete from user where uid=%s"
     cursor.execute(sql, [id])
@@ -205,7 +209,7 @@ def edit_client():
         flash("请先登录！", category="error")
         return redirect('/login')
     search = request.args.get("search")
-    conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8',
+    conn = pymysql.connect(host="127.0.0.1", port=3306, user='admin', passwd="admin", charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
@@ -213,8 +217,10 @@ def edit_client():
     data_list = cursor.fetchall()
 
     if search is not None:
-        cursor.execute("select cid,cname,type,contacts,contact_number,address,remarks from client where cname like %s"
-                       , ["%" + search + "%"])
+        cursor.execute("select cid,cname,type,contacts,contact_number,address,remarks from client where cname like %s "
+                       + "or type like %s or contacts like %s or contact_number like %s or address like %s",
+                       ["%" + search + "%", "%" + search + "%", "%" + search + "%", "%" + search + "%",
+                        "%" + search + "%"])
         data_list = cursor.fetchall()
 
     conn.close()
@@ -243,7 +249,7 @@ def change_client(id):
     if contact_number == "":
         return jsonify({'error_message': '联系电话不能为空'})
     # 更新client
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='admin', password='admin', charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
@@ -265,7 +271,7 @@ def delete_client(id):
         flash("请先登录！", category="error")
         return redirect('/login')
     # 删除客户
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', db='warehouse')
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='admin', password='admin', db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     sql = "delete from client where cid=%s"
     cursor.execute(sql, [id])
@@ -297,7 +303,7 @@ def add_client():
         return jsonify({'error_message': '联系电话不能为空'})
 
     # 新增client
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='admin', password='admin', charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
@@ -318,7 +324,7 @@ def edit_warehouse():
         flash("请先登录！", category="error")
         return redirect('/login')
     search = request.args.get("search")
-    conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8',
+    conn = pymysql.connect(host="127.0.0.1", port=3306, user='admin', passwd="admin", charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
@@ -326,8 +332,8 @@ def edit_warehouse():
     data_list = cursor.fetchall()
 
     if search is not None:
-        cursor.execute("select wid,wname,description from warehouse where wname like %s"
-                       , ["%" + search + "%"])
+        cursor.execute("select wid,wname,description from warehouse where wname like %s "
+                       + "or description like %s", ["%" + search + "%", "%" + search + "%"])
         data_list = cursor.fetchall()
 
     conn.close()
@@ -349,7 +355,7 @@ def add_warehouse():
         return jsonify({'error_message': '仓库名称不能为空'})
 
     # 新增warehouse
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='admin', password='admin', charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
@@ -375,7 +381,7 @@ def change_warehouse(id):
     if wname == "":
         return jsonify({'error_message': '仓库名称不能为空'})
     # 更新warehouse
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='admin', password='admin', charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
@@ -397,7 +403,7 @@ def delete_warehouse(id):
         flash("请先登录！", category="error")
         return redirect('/login')
     # 删除客户
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', db='warehouse')
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='admin', password='admin', db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     sql = "delete from warehouse where wid=%s"
     cursor.execute(sql, [id])
@@ -415,7 +421,7 @@ def edit_product():
         flash("请先登录！", category="error")
         return redirect('/login')
     search = request.args.get("search")
-    conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8',
+    conn = pymysql.connect(host="127.0.0.1", port=3306, user='admin', passwd="admin", charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
@@ -423,8 +429,10 @@ def edit_product():
     data_list = cursor.fetchall()
 
     if search is not None:
-        cursor.execute("select pid,pname,specification,reference_price,maxlim,minlim from product where pname like %s"
-                       , ["%" + search + "%"])
+        cursor.execute("select pid,pname,specification,reference_price,maxlim,minlim from product where pname like %s" +
+                       " or specification like %s or reference_price like %s or maxlim like %s or minlim like %s"
+                       , ["%" + search + "%", "%" + search + "%", "%" + search + "%", "%" + search + "%",
+                          "%" + search + "%"])
         data_list = cursor.fetchall()
 
     conn.close()
@@ -458,10 +466,12 @@ def change_product(id):
         return jsonify({'error_message': '数量上限需为整数'})
     if not minlim.isdigit():
         return jsonify({'error_message': '数量下限需为整数'})
+    maxlim = int(maxlim)
+    minlim = int(minlim)
     if maxlim < minlim:
         return jsonify({'error_message': '数量上限需大于下限'})
     # 更新product
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='admin', password='admin', charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
@@ -482,7 +492,7 @@ def delete_product(id):
     if 'name' not in session:
         flash("请先登录！", category="error")
         return redirect('/login')
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', db='warehouse')
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='admin', password='admin', db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
     sql = "delete from product where pid=%s"
     cursor.execute(sql, [id])
@@ -524,7 +534,7 @@ def add_product():
         return jsonify({'error_message': '数量上限需大于下限'})
 
     # 新增product
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='admin', password='admin', charset='utf8',
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
@@ -541,6 +551,40 @@ def add_product():
 def logout():
     session.clear()
     return redirect('/login')
+
+
+@app.route('/backup')
+def backup():
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
+    # 备份文件存储路径
+    BACKUP_DIR = "D:/PyCharm/ProductWarehouse/backups"
+    if not os.path.exists(BACKUP_DIR):
+        os.makedirs(BACKUP_DIR)
+    # 获取当前时间，用于生成唯一的备份文件名
+    backup_filename = f"warehouse_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
+    backup_filepath = BACKUP_DIR + '/' + backup_filename
+
+    # 使用 mysqldump 命令生成备份文件
+    dump_command = [
+        'mysqldump',
+        '-h', '127.0.0.1',
+        '-P', '3306',
+        '-u', 'superadmin',
+        f'--password=superadmin',  # 密码直接拼接
+        'warehouse'
+    ]
+    print(dump_command)
+
+    # 执行 mysqldump 命令
+    try:
+        with open(backup_filepath, 'wb') as f:
+            subprocess.run(dump_command, stdout=f, stderr=subprocess.PIPE, check=True)
+        return jsonify({'status': 'success'})
+    except subprocess.CalledProcessError as e:
+        return jsonify({'status': 'fail'})
 
 
 if __name__ == '__main__':

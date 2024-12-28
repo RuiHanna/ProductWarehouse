@@ -42,7 +42,7 @@
 <!--搜索-->
 <div class="d-flex justify-content-end m-3">
     <form class="d-flex" role="search" action="/edit/client">
-        <input class="form-control me-2" name="search" placeholder="输入姓名...">
+        <input class="form-control me-2" name="search" placeholder="搜索...">
         <button class="btn btn-outline-success" type="submit">
             <i class="bi bi-search"></i>
         </button>
@@ -88,6 +88,13 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
+                                        <!--错误信息-->
+                                        <div id="flashmessage-{{ data.cid }}"
+                                             class="alert alert-danger d-flex align-items-center visually-hidden"
+                                             role="alert">
+                                            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+                                            <div></div>
+                                        </div>
                                         <div class="mb-3 row">
                                             <label class="col-sm-3 col-form-label">客户编号</label>
                                             <div class="col-sm-9">
@@ -137,8 +144,7 @@
                                                        value="{{ data.remarks }}">
                                             </div>
                                         </div>
-                                        <!--错误信息-->
-                                        <div id="flashmessage-{{ data.cid }}" class="alert alert-danger visually-hidden"></div>
+
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭
@@ -195,6 +201,13 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <!--错误信息-->
+                        <div id="flashmessageadd"
+                             class="alert alert-danger d-flex align-items-center visually-hidden"
+                             role="alert">
+                            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+                            <div></div>
+                        </div>
                         <div class="mb-3 row">
                             <label class="col-sm-3 col-form-label">客户姓名</label>
                             <div class="col-sm-9">
@@ -231,8 +244,6 @@
                                 <input type="text" name="remarks" class="form-control">
                             </div>
                         </div>
-                        <!--错误信息-->
-                        <div id="flashmessageadd" class="alert alert-danger visually-hidden"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭
@@ -264,7 +275,7 @@
                 data: formData,
                 success: function (response) {
                     if (response.error_message) {
-                        $('#flashmessage-' + cid).removeClass('visually-hidden').text(response.error_message);
+                        $('#flashmessage-' + cid).removeClass('visually-hidden').children('div').text(response.error_message);
                     } else {
                         location.reload();
                     }
@@ -282,7 +293,7 @@
                 data: formData,
                 success: function (response) {
                     if (response.error_message) {
-                        $('#flashmessageadd').removeClass('visually-hidden').text(response.error_message);
+                        $('#flashmessageadd').removeClass('visually-hidden').children('div').text(response.error_message);
                     } else {
                         location.reload();
                     }
