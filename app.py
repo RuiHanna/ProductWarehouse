@@ -2,6 +2,7 @@ import secrets
 
 import pymysql
 from flask import Flask, render_template, request, redirect, flash, jsonify, session
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)  # 生成随机的十六进制字符串作为密钥
@@ -12,6 +13,7 @@ app.secret_key = secrets.token_hex(16)  # 生成随机的十六进制字符串�
 def register():
     if request.method == 'GET':
         return render_template("register.html")
+    # post:数据获取
     name = request.form.get("name")
     pwd = request.form.get("pwd")
     confirm = request.form.get("confirm")
@@ -22,9 +24,6 @@ def register():
     if not name:
         flash("姓名不能为空", category="error")
         return redirect("/register")
-    if pwd != confirm:
-        flash("密码输入不一致", category="error")
-        return redirect("/register")
     if not pwd:
         flash("密码不能为空", category="error")
         return redirect("/register")
@@ -33,6 +32,9 @@ def register():
         return redirect("/register")
     if not auth:
         flash("权限不能为空", category="error")
+        return redirect("/register")
+    if pwd != confirm:
+        flash("密码输入不一致", category="error")
         return redirect("/register")
 
     # 连接数据库
@@ -46,13 +48,18 @@ def register():
         flash("姓名已存在", category="error")
         return redirect("/register")
 
+    # 权限转为smallint
     if auth == "superadmin":
         authority = 0
     else:
         authority = 1
 
+    # 数据库安全性：密码加密
+    hashed_pwd = generate_password_hash(pwd)
+
+    # 添加用户
     sql = "insert into user(uname,pwd,auth,remarks) values(%s,%s,%s,%s)"
-    cursor.execute(sql, [name, pwd, authority, remarks])
+    cursor.execute(sql, [name, hashed_pwd, authority, remarks])
     conn.commit()
 
     cursor.close()
@@ -70,8 +77,10 @@ def login():
         if session['auth'] == 0:
             return redirect("/edit/admin")
         return redirect("/edit/client")
+
     if request.method == 'GET':
         return render_template("login.html")
+    # 获取登录信息
     name = request.form.get('name')
     pwd = request.form.get('pwd')
 
@@ -95,12 +104,11 @@ def login():
         flash("姓名错误或还没有注册", category="error")
         return redirect("/login")
 
-    # 验证密码，记录session（加哈希）
+    # 验证密码
     for data in data_list:
-        if pwd == data['pwd']:
+        if check_password_hash(data['pwd'], pwd):
             authority = data['auth']
             session['name'] = name
-            session['pwd'] = pwd
             session['auth'] = authority
         else:
             flash("密码错误", category="error")
@@ -127,9 +135,9 @@ def edit_admin():
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
     if search is None:
-        cursor.execute("select uid,uname,auth,remarks from user")
+        cursor.execute("select uid,uname,auth,remarks from user where auth=1")
     else:
-        cursor.execute("select uid,uname,auth,remarks from user where uname like %s", ["%" + search + "%"])
+        cursor.execute("select uid,uname,auth,remarks from user where uname like %s and auth=1", ["%" + search + "%"])
 
     data_list = cursor.fetchall()
 
@@ -230,6 +238,10 @@ def change_client(id):
     # 校验数据:使用ajax
     if cname == "":
         return jsonify({'error_message': '客户姓名不能为空'})
+    if contacts == "":
+        return jsonify({'error_message': '联系人不能为空'})
+    if contact_number == "":
+        return jsonify({'error_message': '联系电话不能为空'})
     # 更新client
     conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
                            db='warehouse')
@@ -279,6 +291,10 @@ def add_client():
     # 校验数据:使用ajax
     if cname == "":
         return jsonify({'error_message': '客户姓名不能为空'})
+    if contacts == "":
+        return jsonify({'error_message': '联系人不能为空'})
+    if contact_number == "":
+        return jsonify({'error_message': '联系电话不能为空'})
 
     # 新增client
     conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
@@ -432,11 +448,18 @@ def change_product(id):
     if pname == "":
         return jsonify({'error_message': '产品名称不能为空'})
     if not reference_price.isdigit():
-        return jsonify({'error_message': '参考价格需为整数'})
+        if reference_price.count('.') != 1:
+            return jsonify({'error_message': '参考价格需为小数'})
+        left = reference_price.split('.')[0]
+        right = reference_price.split('.')[1]
+        if not (left.isdigit() and right.isdigit() and len(right) <= 2):
+            return jsonify({'error_message': '参考价格需为小数'})
     if not maxlim.isdigit():
         return jsonify({'error_message': '数量上限需为整数'})
     if not minlim.isdigit():
         return jsonify({'error_message': '数量下限需为整数'})
+    if maxlim < minlim:
+        return jsonify({'error_message': '数量上限需大于下限'})
     # 更新product
     conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
                            db='warehouse')
@@ -485,11 +508,20 @@ def add_product():
     if pname == "":
         return jsonify({'error_message': '产品名称不能为空'})
     if not reference_price.isdigit():
-        return jsonify({'error_message': '参考价格需为整数'})
+        if reference_price.count('.') != 1:
+            return jsonify({'error_message': '参考价格需为小数'})
+        left = reference_price.split('.')[0]
+        right = reference_price.split('.')[1]
+        if not (left.isdigit() and right.isdigit() and len(right) <= 2):
+            return jsonify({'error_message': '参考价格需为小数'})
     if not maxlim.isdigit():
         return jsonify({'error_message': '数量上限需为整数'})
     if not minlim.isdigit():
         return jsonify({'error_message': '数量下限需为整数'})
+    maxlim = int(maxlim)
+    minlim = int(minlim)
+    if maxlim < minlim:
+        return jsonify({'error_message': '数量上限需大于下限'})
 
     # 新增product
     conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='password', charset='utf8',
