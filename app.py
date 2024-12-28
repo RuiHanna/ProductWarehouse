@@ -1,10 +1,8 @@
-import os
-import secrets
-import subprocess
+import os, secrets, subprocess, random
 from datetime import datetime
-import random
 
 import pymysql
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template, request, redirect, flash, jsonify, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
@@ -571,38 +569,62 @@ def logout():
     return redirect('/login')
 
 
+# 备份文件存储路径
+BACKUP_DIR = "D:/PyCharm/ProductWarehouse/backups"
+if not os.path.exists(BACKUP_DIR):
+    os.makedirs(BACKUP_DIR)
+# 使用 mysqldump 命令生成备份文件
+dump_command = [
+    'mysqldump',
+    '-h', '127.0.0.1',
+    '-P', '3306',
+    '-u', 'superadmin',
+    f'--password=superadmin',
+    'warehouse'
+]
+
+
 @app.route('/backup')
 def backup():
     # 检查是否登录
     if 'name' not in session:
         flash("请先登录！", category="error")
         return redirect('/login')
-    # 备份文件存储路径
-    BACKUP_DIR = "D:/PyCharm/ProductWarehouse/backups"
-    if not os.path.exists(BACKUP_DIR):
-        os.makedirs(BACKUP_DIR)
+
     # 获取当前时间，用于生成唯一的备份文件名
     backup_filename = f"warehouse_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
     backup_filepath = BACKUP_DIR + '/' + backup_filename
-
-    # 使用 mysqldump 命令生成备份文件
-    dump_command = [
-        'mysqldump',
-        '-h', '127.0.0.1',
-        '-P', '3306',
-        '-u', 'superadmin',
-        f'--password=superadmin',  # 密码直接拼接
-        'warehouse'
-    ]
-    print(dump_command)
 
     # 执行 mysqldump 命令
     try:
         with open(backup_filepath, 'wb') as f:
             subprocess.run(dump_command, stdout=f, stderr=subprocess.PIPE, check=True)
-        return jsonify({'status': 'success'})
+            print(f"数据库备份成功：{backup_filepath}")
+            return jsonify({'status': 'success'})
     except subprocess.CalledProcessError as e:
+        print(f"备份失败：{e.stderr.decode()}")
         return jsonify({'status': 'fail'})
+
+
+# 定义数据库备份函数
+def backup_database():
+    # 获取当前时间，用于生成唯一的备份文件名
+    backup_filename = f"warehouse_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
+    backup_filepath = BACKUP_DIR + '/' + backup_filename
+
+    # 执行 mysqldump 命令
+    try:
+        with open(backup_filepath, 'wb') as f:
+            subprocess.run(dump_command, stdout=f, stderr=subprocess.PIPE, check=True)
+        print(f"数据库备份成功：{backup_filepath}")
+    except subprocess.CalledProcessError as e:
+        print(f"备份失败：{e.stderr.decode()}")
+
+
+# 定时任务：每 24 小时自动备份
+scheduler = BackgroundScheduler()
+scheduler.add_job(backup_database, 'interval', hours=24)
+scheduler.start()
 
 
 @app.route('/findpwd', methods=['POST', 'GET'])
