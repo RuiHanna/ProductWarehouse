@@ -2,13 +2,25 @@ import os
 import secrets
 import subprocess
 from datetime import datetime
+import random
 
 import pymysql
-from flask import Flask, render_template, request, redirect, flash, jsonify, session, send_file
+from flask import Flask, render_template, request, redirect, flash, jsonify, session
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)  # 生成随机的十六进制字符串作为密钥
+# SMTP服务器配置
+app.config.update(
+    MAIL_SERVER='smtp.qq.com',
+    MAIL_PORT='465',
+    MAIL_USE_SSL=True,
+    MAIL_USERNAME='ruihanna16@qq.com',
+    MAIL_PASSWORD='ysiwoyojwkoldhad'
+)
+
+mail = Mail(app)
 
 
 # 注册
@@ -22,6 +34,9 @@ def register():
     confirm = request.form.get("confirm")
     auth = request.form.get("auth")
     remarks = request.form.get("remarks")
+    address1 = request.form.get("address1")
+    address2 = request.form.get("address2")
+    address = address1 + "@" + address2
 
     # 校验数据
     if not name:
@@ -36,6 +51,9 @@ def register():
     if not auth:
         flash("权限不能为空", category="error")
         return redirect("/register")
+    if not address1 or not address2:
+        flash("邮箱不能为空", category='error')
+        return redirect('/register')
     if pwd != confirm:
         flash("密码输入不一致", category="error")
         return redirect("/register")
@@ -61,8 +79,8 @@ def register():
     hashed_pwd = generate_password_hash(pwd)
 
     # 添加用户
-    sql = "insert into user(uname,pwd,auth,remarks) values(%s,%s,%s,%s)"
-    cursor.execute(sql, [name, hashed_pwd, authority, remarks])
+    sql = "insert into user(uname,pwd,auth,address,remarks) values(%s,%s,%s,%s,%s)"
+    cursor.execute(sql, [name, hashed_pwd, authority, address, remarks])
     conn.commit()
 
     cursor.close()
@@ -585,6 +603,94 @@ def backup():
         return jsonify({'status': 'success'})
     except subprocess.CalledProcessError as e:
         return jsonify({'status': 'fail'})
+
+
+@app.route('/findpwd', methods=['POST', 'GET'])
+def findpwd():
+    if request.method == 'GET':
+        return render_template('findpwd.html')
+
+    # 获取用户名信息
+    name = request.form.get('name')
+    # 校验数据
+    if not name:
+        flash("用户名不能为空", category="error")
+        return redirect("/findpwd")
+
+    # 连接数据库
+    conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8',
+                           db='warehouse')
+    cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
+    sql = "select address,pwd from user where uname=%s"
+    cursor.execute(sql, [name])
+    data = cursor.fetchone()
+
+    # 找不到记录，姓名错误或没有注册
+    if len(data) == 0:
+        flash("用户名错误或还没有注册", category="error")
+        return redirect("/findpwd")
+
+    # 发送邮件
+    msg = Message(subject='来自企业产品仓库基本信息管理系统', sender='ruihanna16@qq.com',
+                  recipients=[data['address']])
+
+    # 生成临时密码
+    temp_pwd = ""
+    for i in range(10):
+        temp_pwd += str(random.randint(0, 9))
+    msg.body = "您好！欢迎使用企业产品仓库基本信息管理系统。\n欢迎使用找回密码功能\n以下是您的信息：\n用户名：{}     临时密码：{}\n请您登录之后立即重置密码".format(
+        name, temp_pwd)
+    msg.html = '<div><h2>您好！欢迎使用企业产品仓库基本信息管理系统。</h2></div><div>欢迎使用找回密码功能</div><div>以下是您的信息：</div><div>用户名：{}  临时密码：{}</div><div>请您登录之后立即重置密码</div>'.format(
+        name, temp_pwd)
+    mail.send(msg)
+    cursor.execute("update user set pwd = %s where uname=%s", [generate_password_hash(temp_pwd), name])
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return redirect('/login')
+
+
+@app.route('/reset', methods=['POST', 'GET'])
+def reset():
+    # 检查是否登录
+    if 'name' not in session:
+        flash("请先登录！", category="error")
+        return redirect('/login')
+    if request.method == 'GET':
+        return render_template('reset.html')
+    # post:数据获取
+    pwd = request.form.get("pwd")
+    confirm = request.form.get("confirm")
+
+    # 校验数据
+    if not pwd:
+        flash("密码不能为空", category="error")
+        return redirect("/register")
+    if not confirm:
+        flash("未确认密码", category="error")
+        return redirect("/register")
+    if pwd != confirm:
+        flash("密码输入不一致", category="error")
+        return redirect("/register")
+
+    # 连接数据库
+    conn = pymysql.connect(host="127.0.0.1", port=3306, user='root', passwd="password", charset='utf8',
+                           db='warehouse')
+    cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
+
+    # 数据库安全性：密码加密
+    hashed_pwd = generate_password_hash(pwd)
+
+    # 更新密码
+    sql = "update user set pwd = %s where uname=%s"
+    cursor.execute(sql, [hashed_pwd, session['name']])
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+    return redirect('/login')
 
 
 if __name__ == '__main__':

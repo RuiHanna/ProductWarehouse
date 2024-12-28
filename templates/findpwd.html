@@ -15,11 +15,11 @@
         <a class="navbar-brand" href="/login">企业产品仓库基本信息管理系统</a>
     </div>
 </nav>
-<!--登录表单-->
+<!--找回密码表单-->
 <div class="mx-auto my-5 card shadow-lg rounded-3" style="max-width: 400px; background-color: #f9f9f9;">
     <div class="card-body">
-        <form method="post" action="/login">
-            <div class="text-center fs-3 mb-4 mt-2">登录</div>
+        <form method="post" action="/findpwd">
+            <div class="text-center fs-3 mb-4 mt-2">找回密码</div>
             <!--错误信息-->
             <div class="alert alert-danger d-flex align-items-center
                     {% if get_flashed_messages() %}{{ '' }}{% else %}visually-hidden{% endif %}" role="alert">
@@ -27,26 +27,17 @@
                 <div class="flex-grow-1">{{ get_flashed_messages()[0] }}</div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            <!-- 姓名 -->
-            <div class="mb-4">
-                <label for="name" class="form-label">姓名</label>
-                <input type="text" class="form-control" name="name" id="name" placeholder="请输入姓名" required>
+            <!-- 用户名 -->
+            <div class="mb-5">
+                <label for="name" class="form-label">用户名</label>
+                <input type="text" class="form-control" name="name" id="name" placeholder="请输入用户名" required>
             </div>
-            <!-- 密码 -->
-            <div class="mb-2">
-                <label for="pwd" class="form-label">密码</label>
-                <input type="password" name="pwd" id="pwd" class="form-control" placeholder="请输入密码" required>
-            </div>
-            <!--忘记密码-->
-            <div class="text-end mb-4">
-                <a href="/findpwd" class="text-decoration-none">忘记密码？</a>
-            </div>
-            <!-- 提交 -->
+            <!-- 发送邮件 -->
             <div class="text-center my-3">
-                <button type="submit" class="btn btn-primary w-100">提交</button>
+                <button type="submit" class="btn btn-primary w-100">发送邮件</button>
             </div>
             <div class="text-center">
-                没有账号？去<a href="/register" class="text-decoration-none">注册</a>
+                又想起来了？去<a href="/login" class="text-decoration-none">登录</a>
             </div>
         </form>
     </div>
