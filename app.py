@@ -672,7 +672,8 @@ def findpwd():
     msg.html = '<div><h2>您好！欢迎使用企业产品仓库基本信息管理系统。</h2></div><div>欢迎使用找回密码功能</div><div>以下是您的信息：</div><div>用户名：{}  临时密码：{}</div><div>请您登录之后立即重置密码</div>'.format(
         name, temp_pwd)
     mail.send(msg)
-    cursor.execute("update user set pwd = %s where uname=%s", [generate_password_hash(temp_pwd), name])
+    cursor.execute("update user set pwd = %s where uname=%s",
+                   [generate_password_hash(temp_pwd), name])
     conn.commit()
 
     cursor.close()
