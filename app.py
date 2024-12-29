@@ -327,7 +327,10 @@ def add_client():
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
-    sql = "insert into client(cname,type,contacts,contact_number,address,remarks) values(%s,%s,%s,%s,%s,%s)"
+    sql = """
+        insert into client(cname,type,contacts,contact_number,address,remarks) 
+        values(%s,%s,%s,%s,%s,%s)
+    """
     cursor.execute(sql, [cname, type, contacts, contact_number, address, remarks])
     conn.commit()
     cursor.close()
