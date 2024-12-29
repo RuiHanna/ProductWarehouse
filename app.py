@@ -464,7 +464,7 @@ def change_product(id):
         flash("请先登录！", category="error")
         return redirect('/login')
     pname = request.form.get('pname')
-    specification = request.form.get(' specification')
+    specification = request.form.get('specification')
     reference_price = request.form.get('reference_price')
     maxlim = request.form.get('maxlim')
     minlim = request.form.get('minlim')
@@ -526,7 +526,7 @@ def add_product():
         flash("请先登录！", category="error")
         return redirect('/login')
     pname = request.form.get('pname')
-    specification = request.form.get(' specification')
+    specification = request.form.get('specification')
     reference_price = request.form.get('reference_price')
     maxlim = request.form.get('maxlim')
     minlim = request.form.get('minlim')
@@ -578,8 +578,8 @@ dump_command = [
     'mysqldump',
     '-h', '127.0.0.1',
     '-P', '3306',
-    '-u', 'superadmin',
-    f'--password=superadmin',
+    '-u', 'root',
+    f'--password=password',
     'warehouse'
 ]
 
