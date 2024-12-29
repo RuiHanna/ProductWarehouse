@@ -570,6 +570,7 @@ def add_product():
     return redirect('/edit/product')
 
 
+# 注销
 @app.route('/logout')
 def logout():
     session.clear()
@@ -591,6 +592,7 @@ dump_command = [
 ]
 
 
+# 手动备份
 @app.route('/backup')
 def backup():
     # 检查是否登录
@@ -613,7 +615,7 @@ def backup():
         return jsonify({'status': 'fail'})
 
 
-# 定义数据库备份函数
+# 自动备份函数
 def backup_database():
     # 获取当前时间，用于生成唯一的备份文件名
     backup_filename = f"warehouse_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
@@ -634,6 +636,7 @@ scheduler.add_job(backup_database, 'interval', hours=24)
 scheduler.start()
 
 
+# 找回密码
 @app.route('/findpwd', methods=['POST', 'GET'])
 def findpwd():
     if request.method == 'GET':
@@ -682,6 +685,7 @@ def findpwd():
     return redirect('/login')
 
 
+# 重置密码
 @app.route('/reset', methods=['POST', 'GET'])
 def reset():
     # 检查是否登录
