@@ -237,7 +237,7 @@ def edit_client():
          from client where cname like %s or type like %s or contacts like %s 
          or contact_number like %s or address like %s""",
                        ["%" + search + "%", "%" + search + "%", "%" + search + "%",
-                        "%" + search + "%","%" + search + "%"])
+                        "%" + search + "%", "%" + search + "%"])
         data_list = cursor.fetchall()
 
     conn.close()
@@ -270,7 +270,7 @@ def change_client(id):
                            db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
-    sql="""
+    sql = """
         update client set cname=%s,type=%s,contacts=%s,contact_number=%s,
         address=%s,remarks=%s where cid=%s
     """
