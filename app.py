@@ -266,8 +266,8 @@ def change_client(id):
     if contact_number == "":
         return jsonify({'error_message': '联系电话不能为空'})
     # 更新client
-    conn = pymysql.connect(host='127.0.0.1', port=3306, user='admin', password='admin', charset='utf8',
-                           db='warehouse')
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='admin', password='admin'
+                           , charset='utf8', db='warehouse')
     cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 
     sql = """
