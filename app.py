@@ -1,3 +1,4 @@
+# app.py
 import os, secrets, subprocess, random
 from datetime import datetime
 
@@ -578,7 +579,7 @@ def logout():
 
 
 # 备份文件存储路径
-BACKUP_DIR = "D:/PyCharm/ProductWarehouse/backups"
+BACKUP_DIR = "./backups"
 if not os.path.exists(BACKUP_DIR):
     os.makedirs(BACKUP_DIR)
 # 使用 mysqldump 命令生成备份文件
