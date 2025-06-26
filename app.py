@@ -12,11 +12,11 @@ app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)  # 生成随机的十六进制字符串作为密钥
 # SMTP服务器配置
 app.config.update(
-    MAIL_SERVER='smtp.qq.com',
-    MAIL_PORT='465',
+    MAIL_SERVER='xxx.qq.com',
+    MAIL_PORT='xxx',
     MAIL_USE_SSL=True,
-    MAIL_USERNAME='ruihanna16@qq.com',
-    MAIL_PASSWORD='ysiwoyojwkoldhad'
+    MAIL_USERNAME='xxx',
+    MAIL_PASSWORD='xxx'
 )
 
 mail = Mail(app)
